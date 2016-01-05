@@ -101,6 +101,7 @@ public final class CapureActivity extends Activity implements SurfaceHolder.Call
     private EditText mEdit;
     private CheckBox mAddBt;
     private Bitmap mQRBitmap = null;
+    private Bitmap tpmBitmap = null;
 
     public Handler getHandler() {
         return handler;
@@ -115,15 +116,10 @@ public final class CapureActivity extends Activity implements SurfaceHolder.Call
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
-        setContentView(R.layout.main_layout);
-        mScan = (Button) findViewById(R.id.scan);
-        mCreate = (Button) findViewById(R.id.createQR);
-        mShowQR = (ImageView) findViewById(R.id.show_qr);
-        mEdit = (EditText) findViewById(R.id.content);
-        mAddBt = (CheckBox) findViewById(R.id.set_bit);
-        mSave = (Button) findViewById(R.id.sava);
         initView();
         initEvent();
+
+
     }
 
 
@@ -148,7 +144,8 @@ public final class CapureActivity extends Activity implements SurfaceHolder.Call
                 if (mAddBt.isChecked()) {
                     bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.win);
                 }
-                createQRImage(str, bitmap);
+                //显示到一个ImageView上面
+                mShowQR.setImageBitmap(createQRImage(str, bitmap));
                 break;
             case R.id.sava:
                 saveQR();
@@ -158,7 +155,7 @@ public final class CapureActivity extends Activity implements SurfaceHolder.Call
     }
 
     private void saveQR() {
-        if (mQRBitmap != null) {
+        if (mQRBitmap != null && !mQRBitmap.equals(tpmBitmap)) {
             File file = new File("/mnt/sdcard/TIFA/" + System.currentTimeMillis() + ".jpg");
             Log.d("TAG", file.getAbsolutePath().toString());
             FileOutputStream saveIO = null;
@@ -169,10 +166,10 @@ public final class CapureActivity extends Activity implements SurfaceHolder.Call
                 }
                 file.createNewFile();
                 saveIO = new FileOutputStream(file);
-                mQRBitmap.compress(Bitmap.CompressFormat.JPEG, 100, saveIO);
+                mQRBitmap.compress(Bitmap.CompressFormat.JPEG, 1, saveIO);
                 saveIO.flush();
                 Toast.makeText(this, "已保存", Toast.LENGTH_LONG).show();
-
+                tpmBitmap = mQRBitmap;
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
@@ -184,12 +181,20 @@ public final class CapureActivity extends Activity implements SurfaceHolder.Call
                     }
                 }
             }
+        } else {
+            Toast.makeText(this, "重复保存对象", Toast.LENGTH_LONG).show();
         }
 
     }
 
     private void initView() {
-
+        setContentView(R.layout.main_layout);
+        mScan = (Button) findViewById(R.id.scan);
+        mCreate = (Button) findViewById(R.id.createQR);
+        mShowQR = (ImageView) findViewById(R.id.show_qr);
+        mEdit = (EditText) findViewById(R.id.content);
+        mAddBt = (CheckBox) findViewById(R.id.set_bit);
+        mSave = (Button) findViewById(R.id.sava);
 
     }
 
@@ -449,11 +454,11 @@ public final class CapureActivity extends Activity implements SurfaceHolder.Call
     }
 
 
-    public void createQRImage(String url, Bitmap logoBm) {
+    public Bitmap createQRImage(String url, Bitmap logoBm) {
         try {
             //判断URL合法性
             if (url == null || "".equals(url) || url.length() < 1) {
-                return;
+                return null;
             }
 
             int QR_WIDTH = 600;
@@ -484,11 +489,13 @@ public final class CapureActivity extends Activity implements SurfaceHolder.Call
             if (logoBm != null) {
                 mQRBitmap = addLogo(mQRBitmap, logoBm);
             }
-            //显示到一个ImageView上面
-            mShowQR.setImageBitmap(mQRBitmap);
+
+
         } catch (WriterException e) {
             e.printStackTrace();
         }
+
+        return mQRBitmap;
     }
 
 

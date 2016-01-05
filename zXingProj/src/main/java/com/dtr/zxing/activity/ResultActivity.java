@@ -15,8 +15,9 @@ import com.dtr.zxing.decode.DecodeThread;
 
 public class ResultActivity extends Activity {
 
-    private ImageView mResultImage;
+    private ImageView mResultImage, mPrivImage;
     private TextView mResultText;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,6 +28,7 @@ public class ResultActivity extends Activity {
 
         mResultImage = (ImageView) findViewById(R.id.result_image);
         mResultText = (TextView) findViewById(R.id.result_text);
+        mPrivImage = (ImageView) findViewById(R.id.temp_img);
 
         if (null != extras) {
             int width = extras.getInt("width");
@@ -51,7 +53,11 @@ public class ResultActivity extends Activity {
             }
 
             mResultImage.setImageBitmap(barcode);
-
+            CapureActivity activity = new CapureActivity();
+            Bitmap priImage = activity.createQRImage(result, null);
+            if (priImage != null) {
+                mPrivImage.setImageBitmap(priImage);
+            }
         }
     }
 

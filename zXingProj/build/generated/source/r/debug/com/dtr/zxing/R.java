@@ -27,8 +27,8 @@ public final class R {
         public static final int capture_mask_top=0x7f060008;
         public static final int capture_preview=0x7f060006;
         public static final int capture_scan_line=0x7f06000a;
-        public static final int content=0x7f060014;
-        public static final int createQR=0x7f060011;
+        public static final int content=0x7f060015;
+        public static final int createQR=0x7f060012;
         public static final int decode=0x7f060000;
         public static final int decode_failed=0x7f060001;
         public static final int decode_succeeded=0x7f060002;
@@ -37,10 +37,11 @@ public final class R {
         public static final int result_image=0x7f06000e;
         public static final int result_text=0x7f06000f;
         public static final int return_scan_result=0x7f060005;
-        public static final int sava=0x7f060012;
-        public static final int scan=0x7f060010;
-        public static final int set_bit=0x7f060013;
-        public static final int show_qr=0x7f060015;
+        public static final int sava=0x7f060013;
+        public static final int scan=0x7f060011;
+        public static final int set_bit=0x7f060014;
+        public static final int show_qr=0x7f060016;
+        public static final int temp_img=0x7f060010;
     }
     public static final class layout {
         public static final int activity_capture=0x7f030000;
