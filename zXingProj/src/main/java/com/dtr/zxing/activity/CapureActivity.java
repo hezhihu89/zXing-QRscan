@@ -180,6 +180,8 @@ public final class CapureActivity extends Activity implements SurfaceHolder.Call
     @Override
     protected void onResume() {
         super.onResume();
+        cameraManager = new CameraManager(getApplication());
+        handler = null;
 
     }
 
@@ -192,9 +194,7 @@ public final class CapureActivity extends Activity implements SurfaceHolder.Call
         // first launch. That led to bugs where the scanning rectangle was the
         // wrong size and partially
         // off screen.
-        cameraManager = new CameraManager(getApplication());
 
-        handler = null;
 
         if (isHasSurface) {
             // The activity was paused but not stopped, so the surface still
@@ -213,10 +213,8 @@ public final class CapureActivity extends Activity implements SurfaceHolder.Call
 
     @Override
     protected void onPause() {
-        if (handler != null) {
-            handler.quitSynchronously();
-            handler = null;
-        }
+
+        cameraManager = null;
         //inactivityTimer.onPause();
         //  beepManager.close();
         //  cameraManager.closeDriver();
@@ -228,7 +226,10 @@ public final class CapureActivity extends Activity implements SurfaceHolder.Call
 
     @Override
     protected void onDestroy() {
-        inactivityTimer.shutdown();
+        if (inactivityTimer != null) {
+            inactivityTimer.shutdown();
+        }
+
         super.onDestroy();
     }
 
@@ -244,13 +245,19 @@ public final class CapureActivity extends Activity implements SurfaceHolder.Call
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         Log.e(TAG, "++++++++++++++++++++++退出+++++++++++++++++");
-        onPause();
+
         if (!isHasSurface) {
             scanPreview.getHolder().removeCallback(this);
         }
+        if (handler != null) {
+            handler.quitSynchronously();
+            handler = null;
+        }
+
         inactivityTimer.onPause();
         beepManager.close();
         cameraManager.closeDriver();
+
 
         isHasSurface = false;
 
