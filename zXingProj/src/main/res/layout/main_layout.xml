@@ -10,11 +10,29 @@
         android:layout_height="wrap_content"
         android:text="扫描" />
 
-    <Button
-        android:id="@+id/createQR"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="生成" />
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/createQR"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="生成" />
+
+        <Button
+            android:id="@+id/sava"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="保存" />
+
+        <CheckBox
+            android:text="是否添加图片"
+            android:id="@+id/set_bit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"

@@ -15,9 +15,13 @@
  */
 package com.dtr.zxing.activity;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Set;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -30,6 +34,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -42,9 +47,11 @@ import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.dtr.zxing.R;
 import com.dtr.zxing.camera.CameraManager;
@@ -87,11 +94,13 @@ public final class CapureActivity extends Activity implements SurfaceHolder.Call
     private Window window;
     private WindowManager.LayoutParams attributes;
 
-    private Button mScan;
+    private Button mScan, mSave;
     private Button mCreate;
     private View dialogView;
     private ImageView mShowQR;
     private EditText mEdit;
+    private CheckBox mAddBt;
+    private Bitmap mQRBitmap = null;
 
     public Handler getHandler() {
         return handler;
@@ -111,16 +120,17 @@ public final class CapureActivity extends Activity implements SurfaceHolder.Call
         mCreate = (Button) findViewById(R.id.createQR);
         mShowQR = (ImageView) findViewById(R.id.show_qr);
         mEdit = (EditText) findViewById(R.id.content);
+        mAddBt = (CheckBox) findViewById(R.id.set_bit);
+        mSave = (Button) findViewById(R.id.sava);
         initView();
         initEvent();
-
-
     }
 
 
     private void initEvent() {
         mScan.setOnClickListener(this);
         mCreate.setOnClickListener(this);
+        mSave.setOnClickListener(this);
 
     }
 
@@ -131,16 +141,52 @@ public final class CapureActivity extends Activity implements SurfaceHolder.Call
             case R.id.scan:
                 initDialog();
                 onRealCamera();
-                mDialog.show();
                 break;
             case R.id.createQR:
                 String str = mEdit.getText().toString().trim();
-                Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher);
+                Bitmap bitmap = null;
+                if (mAddBt.isChecked()) {
+                    bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.win);
+                }
                 createQRImage(str, bitmap);
                 break;
+            case R.id.sava:
+                saveQR();
+                break;
+
         }
     }
 
+    private void saveQR() {
+        if (mQRBitmap != null) {
+            File file = new File("/mnt/sdcard/TIFA/" + System.currentTimeMillis() + ".jpg");
+            Log.d("TAG", file.getAbsolutePath().toString());
+            FileOutputStream saveIO = null;
+            try {
+                File files = new File("/mnt/sdcard/TIFA");
+                if (!files.exists() || !files.isDirectory()) {
+                    files.mkdir();
+                }
+                file.createNewFile();
+                saveIO = new FileOutputStream(file);
+                mQRBitmap.compress(Bitmap.CompressFormat.JPEG, 100, saveIO);
+                saveIO.flush();
+                Toast.makeText(this, "已保存", Toast.LENGTH_LONG).show();
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (saveIO != null) {
+                    try {
+                        saveIO.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+    }
 
     private void initView() {
 
@@ -148,7 +194,7 @@ public final class CapureActivity extends Activity implements SurfaceHolder.Call
     }
 
     private void initDialog() {
-
+        //初始化window界面
         mDialog = new Dialog(this);
         window = mDialog.getWindow();
         dialogView = View.inflate(this, R.layout.activity_capture, null);
@@ -156,7 +202,6 @@ public final class CapureActivity extends Activity implements SurfaceHolder.Call
         attributes = window.getAttributes();
         attributes.width = attributes.MATCH_PARENT;
         attributes.height = attributes.MATCH_PARENT;
-        attributes.gravity = Gravity.CENTER | Gravity.CENTER_HORIZONTAL;
         window.setWindowAnimations(android.R.style.Animation_InputMethod);
         window.setAttributes(attributes);
 
@@ -175,13 +220,17 @@ public final class CapureActivity extends Activity implements SurfaceHolder.Call
         animation.setRepeatCount(-1);
         animation.setRepeatMode(Animation.RESTART);
         scanLine.startAnimation(animation);
+        mDialog.show();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        cameraManager = new CameraManager(getApplication());
-        handler = null;
+        if (cameraManager == null) {
+            cameraManager = new CameraManager(getApplication());
+            handler = null;
+        }
+
 
     }
 
@@ -213,8 +262,8 @@ public final class CapureActivity extends Activity implements SurfaceHolder.Call
 
     @Override
     protected void onPause() {
+        Log.d("TAG", "再次推出");
 
-        cameraManager = null;
         //inactivityTimer.onPause();
         //  beepManager.close();
         //  cameraManager.closeDriver();
@@ -226,20 +275,25 @@ public final class CapureActivity extends Activity implements SurfaceHolder.Call
 
     @Override
     protected void onDestroy() {
+
         if (inactivityTimer != null) {
             inactivityTimer.shutdown();
         }
 
+        cameraManager.closeDriver();
+        cameraManager = null;
         super.onDestroy();
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
+        Log.e(TAG, "++++++++++++++++++++++进入++++++++++++++++");
         onResume();
         if (!isHasSurface) {
             isHasSurface = true;
             initCamera(holder);
         }
+
     }
 
     @Override
@@ -256,8 +310,6 @@ public final class CapureActivity extends Activity implements SurfaceHolder.Call
 
         inactivityTimer.onPause();
         beepManager.close();
-        cameraManager.closeDriver();
-
 
         isHasSurface = false;
 
@@ -284,6 +336,7 @@ public final class CapureActivity extends Activity implements SurfaceHolder.Call
         bundle.putString("result", rawResult.getText());
 
         startActivity(new Intent(CapureActivity.this, ResultActivity.class).putExtras(bundle));
+        finish();
     }
 
     private void initCamera(SurfaceHolder surfaceHolder) {
@@ -424,15 +477,15 @@ public final class CapureActivity extends Activity implements SurfaceHolder.Call
 
 
             //生成二维码图片的格式，使用ARGB_8888
-            Bitmap bitmap = Bitmap.createBitmap(QR_WIDTH, QR_HEIGHT, Bitmap.Config.ARGB_8888);
-            bitmap.setPixels(pixels, 0, QR_WIDTH, 0, 0, QR_WIDTH, QR_HEIGHT);
+            mQRBitmap = Bitmap.createBitmap(QR_WIDTH, QR_HEIGHT, Bitmap.Config.ARGB_8888);
+            mQRBitmap.setPixels(pixels, 0, QR_WIDTH, 0, 0, QR_WIDTH, QR_HEIGHT);
 
 
             if (logoBm != null) {
-                bitmap = addLogo(bitmap, logoBm);
+                mQRBitmap = addLogo(mQRBitmap, logoBm);
             }
             //显示到一个ImageView上面
-            mShowQR.setImageBitmap(bitmap);
+            mShowQR.setImageBitmap(mQRBitmap);
         } catch (WriterException e) {
             e.printStackTrace();
         }
