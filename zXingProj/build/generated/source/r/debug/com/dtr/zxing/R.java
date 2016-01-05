@@ -15,6 +15,7 @@ public final class R {
         public static final int qr_code_bg=0x7f020001;
         public static final int scan_line=0x7f020002;
         public static final int shadow=0x7f020003;
+        public static final int tifa=0x7f020004;
     }
     public static final class id {
         public static final int capture_container=0x7f060007;
@@ -25,6 +26,7 @@ public final class R {
         public static final int capture_mask_top=0x7f060008;
         public static final int capture_preview=0x7f060006;
         public static final int capture_scan_line=0x7f06000a;
+        public static final int content=0x7f060012;
         public static final int createQR=0x7f060011;
         public static final int decode=0x7f060000;
         public static final int decode_failed=0x7f060001;
@@ -35,6 +37,7 @@ public final class R {
         public static final int result_text=0x7f06000f;
         public static final int return_scan_result=0x7f060005;
         public static final int scan=0x7f060010;
+        public static final int show_qr=0x7f060013;
     }
     public static final class layout {
         public static final int activity_capture=0x7f030000;
